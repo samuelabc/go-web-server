@@ -16,7 +16,7 @@ import (
 type ArticleStore interface {
 	Get(string) (*models.Article, error)
 	List(*ListArticleRequest) (*[]models.Article, error)
-	Create(*models.Article) error
+	Create(*models.Article) (*models.Article, error)
 }
 
 // ArticleResource implements article management handler.
@@ -141,13 +141,14 @@ func (rs *ArticleResource) create(w http.ResponseWriter, r *http.Request) *error
 		return errorHelper.ErrValidation(err)
 	}
 
-	if err := rs.Store.Create(data.Article); err != nil {
+	res, err := rs.Store.Create(data.Article)
+	if err != nil {
 		return errorHelper.ErrCreateArticle(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(newArticleResponse(data.Article)); err != nil {
+	if err := json.NewEncoder(w).Encode(newArticleResponse(res)); err != nil {
 		return errorHelper.ErrEncode(err)
 	}
 	return nil

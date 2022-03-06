@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-pg/pg"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4/pgxpool"
 
 	articleController "web-server/api/article"
 	helloRoute "web-server/api/hello"
@@ -107,7 +107,7 @@ type API struct {
 }
 
 // NewAPI configures and returns application API.
-func NewAPI(db *pg.DB) (*API, error) {
+func NewAPI(db *pgxpool.Pool) (*API, error) {
 	articleStore := database.NewArticleStore(db)
 	article := articleController.NewArticleResource(articleStore)
 

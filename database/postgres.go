@@ -2,38 +2,46 @@
 package database
 
 import (
+	"context"
 	"log"
 
-	"github.com/spf13/viper"
+	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/go-pg/pg"
 )
 
 // DBConn returns a postgres connection pool.
-func DBConn() (*pg.DB, error) {
-	viper.SetDefault("db_network", "tcp")
-	viper.SetDefault("db_addr", "localhost:5432")
-	viper.SetDefault("db_user", "postgres")
-	viper.SetDefault("db_password", "password")
-	viper.SetDefault("db_database", "go-web-server")
+func DBConn() (*pgxpool.Pool, error) {
+	// viper.SetDefault("db_network", "tcp")
+	// viper.SetDefault("db_addr", "localhost:5432")
+	// viper.SetDefault("db_user", "postgres")
+	// viper.SetDefault("db_password", "password")
+	// viper.SetDefault("db_database", "go-web-server")
 
-	db := pg.Connect(&pg.Options{
-		Network:  viper.GetString("db_network"),
-		Addr:     viper.GetString("db_addr"),
-		User:     viper.GetString("db_user"),
-		Password: viper.GetString("db_password"),
-		Database: viper.GetString("db_database"),
-	})
+	// db := pg.Connect(&pg.Options{
+	// 	Network:  viper.GetString("db_network"),
+	// 	Addr:     viper.GetString("db_addr"),
+	// 	User:     viper.GetString("db_user"),
+	// 	Password: viper.GetString("db_password"),
+	// 	Database: viper.GetString("db_database"),
+	// })
 
-	if err := checkConn(db); err != nil {
+	ctx := context.Background()
+	dbpool, err := pgxpool.Connect(ctx, "postgres://postgres:password@localhost:5432/go-web-server")
+	if err != nil {
 		return nil, err
 	}
+	// defer dbpool.Close()
 
-	if viper.GetBool("db_debug") {
-		db.AddQueryHook(&logSQL{})
-	}
+	// if err := checkConn(db); err != nil {
+	// 	return nil, err
+	// }
 
-	return db, nil
+	// if viper.GetBool("db_debug") {
+	// 	db.AddQueryHook(&logSQL{})
+	// }
+
+	return dbpool, nil
 }
 
 type logSQL struct{}
