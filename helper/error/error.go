@@ -60,7 +60,9 @@ func ErrPostHealth(err error) *errorModel.AppError {
 const (
 	FETCH_ARTICLE_FAILED = iota + ARTICLE_CODE
 	LIST_ARTICLE_FAILED
-	Create_ARTICLE_FAILED
+	CREATE_ARTICLE_FAILED
+	UPDATE_ARTICLE_FAILED
+	DELETE_ARTICLE_FAILED
 )
 
 func ErrFetchArticle(err error) *errorModel.AppError {
@@ -79,8 +81,22 @@ func ErrListArticle(err error) *errorModel.AppError {
 }
 func ErrCreateArticle(err error) *errorModel.AppError {
 	return &errorModel.AppError{
-		Code:      Create_ARTICLE_FAILED,
+		Code:      CREATE_ARTICLE_FAILED,
 		Message:   "create article failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrUpdateArticle(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      UPDATE_ARTICLE_FAILED,
+		Message:   "update article failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrDeleteArticle(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      DELETE_ARTICLE_FAILED,
+		Message:   "delete article failed",
 		ErrorData: err.Error(),
 	}
 }

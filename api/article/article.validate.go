@@ -1,7 +1,6 @@
 package articleController
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 
@@ -10,12 +9,23 @@ import (
 )
 
 type GetArticleRequest struct {
-	ID string `json:"id" validate:"required,uuid4"`
+	ID *uuid.UUID `json:"id" validate:"required"`
 }
 
 type ListArticleRequest struct {
-	ID    uuid.UUID      `json:"id,omitempty" validate:""`
-	Title sql.NullString `json:"title,omitempty" validate:""`
+	ID      *uuid.UUID `json:"id,omitempty" validate:""`
+	Title   *string    `json:"title,omitempty" validate:""`
+	Content *string    `json:"content,omitempty" validate:""`
+}
+
+type UpdateArticleRequest struct {
+	ID      *uuid.UUID `json:"id,omitempty" validate:"required"`
+	Title   *string    `json:"title,omitempty" validate:""`
+	Content *string    `json:"content,omitempty" validate:""`
+}
+
+type DeleteArticleRequest struct {
+	ID *uuid.UUID `json:"id,omitempty" validate:"required"`
 }
 
 type Options struct {

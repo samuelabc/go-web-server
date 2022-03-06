@@ -14,9 +14,11 @@ import (
 
 // ProfileStore defines database operations for a profile.
 type ArticleStore interface {
-	Get(string) (*models.Article, error)
+	Get(*GetArticleRequest) (*models.Article, error)
 	List(*ListArticleRequest) (*[]models.Article, error)
 	Create(*models.Article) (*models.Article, error)
+	Update(*UpdateArticleRequest) (*models.Article, error)
+	Delete(*DeleteArticleRequest) (*models.Article, error)
 }
 
 // ArticleResource implements article management handler.
@@ -88,7 +90,7 @@ func (rs *ArticleResource) get(w http.ResponseWriter, r *http.Request) *errorMod
 		return errorHelper.ErrValidation(err)
 	}
 
-	article, err := rs.Store.Get(data.ID)
+	article, err := rs.Store.Get(data)
 	if err != nil {
 		return errorHelper.ErrFetchArticle(err)
 	}
@@ -144,6 +146,60 @@ func (rs *ArticleResource) create(w http.ResponseWriter, r *http.Request) *error
 	res, err := rs.Store.Create(data.Article)
 	if err != nil {
 		return errorHelper.ErrCreateArticle(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(newArticleResponse(res)); err != nil {
+		return errorHelper.ErrEncode(err)
+	}
+	return nil
+}
+
+func (rs *ArticleResource) update(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
+	var err error
+
+	data := &UpdateArticleRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		return errorHelper.ErrInvalidRequest(err)
+	}
+
+	validate := validator.New()
+	err = validate.Struct(data)
+	if err != nil {
+		return errorHelper.ErrValidation(err)
+	}
+
+	res, err := rs.Store.Update(data)
+	if err != nil {
+		return errorHelper.ErrUpdateArticle(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(newArticleResponse(res)); err != nil {
+		return errorHelper.ErrEncode(err)
+	}
+	return nil
+}
+
+func (rs *ArticleResource) delete(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
+	var err error
+
+	data := &DeleteArticleRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		return errorHelper.ErrInvalidRequest(err)
+	}
+
+	validate := validator.New()
+	err = validate.Struct(data)
+	if err != nil {
+		return errorHelper.ErrValidation(err)
+	}
+
+	res, err := rs.Store.Delete(data)
+	if err != nil {
+		return errorHelper.ErrDeleteArticle(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
