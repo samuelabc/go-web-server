@@ -174,8 +174,20 @@ func (s *ArticleStore) Update(a *articleController.UpdateArticleRequest) (*model
 // Delete an account.
 func (s *ArticleStore) Delete(a *articleController.DeleteArticleRequest) (*models.Article, error) {
 	var err error
-	ctx := context.Background()
-	row := s.db.QueryRow(ctx, `
+
+	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(context.Background())
+		} else {
+			tx.Commit(context.Background())
+		}
+	}()
+
+	row := tx.QueryRow(context.Background(), `
 		DELETE FROM articles
 		WHERE articles.id = $1
 		RETURNING *
