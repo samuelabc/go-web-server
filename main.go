@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
-	server "web-server/src"
+	api "web-server/api"
 )
 
 func main() {
 	var err error
 
-	err = server.StartServer()
+	err = api.StartServer()
 	if err != nil {
 		fmt.Println("%w", err)
 		os.Exit(1)

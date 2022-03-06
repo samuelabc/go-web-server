@@ -5,9 +5,8 @@ import (
 )
 
 func InsertRoute(routeMatrix map[routeModel.Path]routeModel.Route) {
-	routeMatrix[routeModel.Path{MainPath: "/hello", SubPath: ""}] =
+	routeMatrix[routeModel.Path{MainPath: "/hello", SubPath: "", Method: routeModel.POST}] =
 		routeModel.Route{
 			Controller: PostHello,
-			Method:     "POST",
 		}
 }

@@ -1,4 +1,4 @@
-package apiMain
+package api
 
 import (
 	"context"
@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-pg/pg"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 
+	articleController "web-server/api/article"
+	helloRoute "web-server/api/hello"
+	database "web-server/database"
+	contextHelper "web-server/helper/context"
+	errorHelper "web-server/helper/error"
 	errorModel "web-server/model/error"
-	healthRoute "web-server/src/api/health"
-	helloRoute "web-server/src/api/hello"
-	contextHelper "web-server/src/helper/context"
-	errorHelper "web-server/src/helper/error"
+	routeModel "web-server/model/route"
 )
 
 func RequestBodyValidationMiddleware(next http.Handler) http.Handler {
@@ -31,11 +34,6 @@ func RequestBodyValidationMiddleware(next http.Handler) http.Handler {
 		// payload := healthRoute.PostHealthSchema{}
 
 		switch r.URL.Path {
-		case "/health":
-			{
-				var body healthRoute.PostHealthSchema
-				payload = &body
-			}
 		case "/hello":
 			{
 				var body helloRoute.PostHelloSchema
@@ -44,7 +42,7 @@ func RequestBodyValidationMiddleware(next http.Handler) http.Handler {
 		}
 		err = json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			return errorHelper.DECODE_ERROR(err)
+			return errorHelper.ErrDecode(err)
 		}
 
 		validate := validator.New()
@@ -55,13 +53,13 @@ func RequestBodyValidationMiddleware(next http.Handler) http.Handler {
 			// an invalid value for validation such as interface with nil
 			// value most including myself do not usually have code like this.
 			if _, ok := err.(*validator.InvalidValidationError); ok {
-				return errorHelper.VALIDATION_ERROR(err)
+				return errorHelper.ErrValidation(err)
 			}
 
 			for _, err := range err.(validator.ValidationErrors) {
 				fmt.Println("validation error", err)
 			}
-			return errorHelper.VALIDATION_ERROR(err)
+			return errorHelper.ErrValidation(err)
 		}
 
 		fmt.Println("jsonbody", payload)
@@ -94,14 +92,55 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func PrepareRoute(r *mux.Router) error {
-	routeMatrix := GetRouteMatrix()
-	// routeInfo := routeMatrix[routeModel.Path{MainPath: r.URL.Path, SubPath: ""}]
-	for k, v := range routeMatrix {
-		r.Handle(k.MainPath, appHandler(v.Controller)).Methods(v.Method)
-		fmt.Printf("path[%v] info[%v]\n", k, v)
+func executeRoute(routeInfo routeModel.Route) func(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
+	exucuteRouteFunc := func(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
+		if appErr := routeInfo.Controller(w, r); appErr != nil {
+			return appErr
+		}
+		return nil
+	}
+	return exucuteRouteFunc
+}
+
+type API struct {
+	Article *articleController.ArticleResource
+}
+
+// NewAPI configures and returns application API.
+func NewAPI(db *pg.DB) (*API, error) {
+	articleStore := database.NewArticleStore(db)
+	article := articleController.NewArticleResource(articleStore)
+
+	api := &API{
+		Article: article,
+	}
+	return api, nil
+}
+
+func Router(r *mux.Router) error {
+	// logger := logging.NewLogger()
+
+	db, err := database.DBConn()
+	if err != nil {
+		// logger.WithField("module", "database").Error(err)
+		return err
 	}
 
-	r.Use(RequestBodyValidationMiddleware)
+	appAPI, err := NewAPI(db)
+	if err != nil {
+		// logger.WithField("module", "app").Error(err)
+		return err
+	}
+
+	routeMatrix := GetRouteMatrix(appAPI)
+	// routeInfo := routeMatrix[routeModel.Path{MainPath: r.URL.Path, SubPath: ""}]
+	for k, v := range routeMatrix {
+		fullPath := fmt.Sprint(k.MainPath, k.SubPath)
+		r.Handle(fullPath, appHandler(executeRoute(v))).Methods(k.Method)
+		fmt.Println(k.Method, fullPath)
+	}
+
+	// r.Use(logging.NewStructuredLogger(logger))
+	// r.Use(RequestBodyValidationMiddleware)
 	return nil
 }

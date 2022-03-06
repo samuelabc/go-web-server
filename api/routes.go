@@ -1,16 +1,16 @@
-package apiMain
+package api
 
 import (
 	"fmt"
+	articleRoute "web-server/api/article"
+	helloRoute "web-server/api/hello"
 	routeModel "web-server/model/route"
-	healthRoute "web-server/src/api/health"
-	helloRoute "web-server/src/api/hello"
 )
 
-func GetRouteMatrix() map[routeModel.Path]routeModel.Route {
+func GetRouteMatrix(appAPI *API) map[routeModel.Path]routeModel.Route {
 	routeMatrix := make(map[routeModel.Path]routeModel.Route)
-	healthRoute.InsertRoute(routeMatrix)
 	helloRoute.InsertRoute(routeMatrix)
+	articleRoute.InsertRoute(routeMatrix, appAPI.Article)
 	fmt.Println("routeMatrix", routeMatrix)
 	return routeMatrix
 }

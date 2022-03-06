@@ -5,21 +5,19 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	errorHelper "web-server/helper/error"
 	errorModel "web-server/model/error"
 	helloModel "web-server/model/hello"
-	contextHelper "web-server/src/helper/context"
-	errorHelper "web-server/src/helper/error"
 )
 
 func PostHello(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
 	var err error
-
-	// var payload PostHelloSchema
-	// err := json.NewDecoder(r.Body).Decode(&payload)
-	// if err != nil {
-	// 	return errorHelper.DECODE_ERROR(err)
-	// }
-	payload := r.Context().Value(contextHelper.ContextKeyJSONPayload).(*PostHelloSchema)
+	var payload PostHelloSchema
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		return errorHelper.ErrDecode(err)
+	}
+	// payload := r.Context().Value(contextHelper.ContextKeyJSONPayload).(*PostHelloSchema)
 
 	var response helloModel.HelloResponse
 	response.Name = payload.Name
@@ -31,7 +29,7 @@ func PostHello(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		return errorHelper.ENCODE_ERROR(err)
+		return errorHelper.ErrEncode(err)
 	}
 	return nil
 }

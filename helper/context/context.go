@@ -4,4 +4,5 @@ type contextKey int
 
 const (
 	ContextKeyJSONPayload contextKey = iota
+	ContextKeyRouteInfo
 )
