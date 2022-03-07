@@ -1,33 +1,33 @@
-package userController
+package accountController
 
 import (
 	"github.com/gofrs/uuid"
 )
 
-type RegisterUserRequest struct {
+type RegisterAccountRequest struct {
 	Name     *string `json:"title,omitempty" validate:"required"`
 	Password *string `json:"content,omitempty" validate:"required"`
 }
 
-type LoginUserRequest struct {
+type LoginAccountRequest struct {
 	Name     *string `json:"title,omitempty" validate:"required"`
 	Password *string `json:"content,omitempty" validate:"required"`
 }
 
-type GetUserRequest struct {
+type GetAccountRequest struct {
 	ID *uuid.UUID `json:"id" validate:"required"`
 }
 
-type ListUserRequest struct {
+type ListAccountRequest struct {
 	Name *string `json:"title,omitempty" validate:"required"`
 }
 
-type UpdateUserRequest struct {
+type UpdateAccountRequest struct {
 	ID       *uuid.UUID `json:"id,omitempty" validate:"required"`
 	Name     *string    `json:"title,omitempty" validate:"required"`
 	Password *string    `json:"content,omitempty" validate:"required"`
 }
 
-type DeleteUserRequest struct {
+type DeleteAccountRequest struct {
 	ID *uuid.UUID `json:"id,omitempty" validate:"required"`
 }

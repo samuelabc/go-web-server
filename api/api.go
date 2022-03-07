@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 
+	accountController "web-server/api/account"
 	articleController "web-server/api/article"
 	helloRoute "web-server/api/hello"
-	userController "web-server/api/user"
 	database "web-server/database"
 	contextHelper "web-server/helper/context"
 	errorHelper "web-server/helper/error"
@@ -105,19 +105,19 @@ func executeRoute(routeInfo routeModel.Route) func(w http.ResponseWriter, r *htt
 
 type API struct {
 	Article *articleController.ArticleResource
-	User    *userController.UserResource
+	Account *accountController.AccountResource
 }
 
 // NewAPI configures and returns application API.
 func NewAPI(db *pgxpool.Pool) (*API, error) {
 	articleStore := database.NewArticleStore(db)
 	article := articleController.NewArticleResource(articleStore)
-	userStore := database.NewUserStore(db)
-	user := userController.NewUserResource(userStore)
+	accountStore := database.NewAccountStore(db)
+	account := accountController.NewAccountResource(accountStore)
 
 	api := &API{
 		Article: article,
-		User:    user,
+		Account: account,
 	}
 	return api, nil
 }

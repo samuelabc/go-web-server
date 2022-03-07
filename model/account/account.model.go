@@ -1,5 +1,5 @@
 // Package models contains application specific entities.
-package userModel
+package accountModel
 
 import (
 	"time"
@@ -12,7 +12,7 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-type User struct {
+type Account struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"title"`
 	PasswordHash string    `json:"content"`
@@ -21,19 +21,19 @@ type User struct {
 }
 
 // BeforeInsert hook executed before database insert operation.
-func (p *User) BeforeInsert(db orm.DB) *errorModel.AppError {
+func (p *Account) BeforeInsert(db orm.DB) *errorModel.AppError {
 	p.UpdatedAt = time.Now()
 	return nil
 }
 
 // BeforeUpdate hook executed before database update operation.
-func (p *User) BeforeUpdate(db orm.DB) *errorModel.AppError {
+func (p *Account) BeforeUpdate(db orm.DB) *errorModel.AppError {
 	p.UpdatedAt = time.Now()
 	return p.Validate()
 }
 
 // Validate validates Article struct and returns validation errors.
-func (p *User) Validate() *errorModel.AppError {
+func (p *Account) Validate() *errorModel.AppError {
 	validate := validator.New()
 	err := validate.Struct(p)
 	return errorHelper.ErrValidation(err)

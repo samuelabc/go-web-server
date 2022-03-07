@@ -2,32 +2,32 @@ package database
 
 import (
 	"context"
-	userController "web-server/api/user"
-	userModel "web-server/model/user"
+	accountController "web-server/api/account"
+	accountModel "web-server/model/account"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // ProfileStore implements database operations for profile management.
-type UserStore struct {
+type AccountStore struct {
 	db *pgxpool.Pool
 }
 
 // NewAccountStore returns an AccountStore.
-func NewUserStore(db *pgxpool.Pool) *UserStore {
-	return &UserStore{
+func NewAccountStore(db *pgxpool.Pool) *AccountStore {
+	return &AccountStore{
 		db: db,
 	}
 }
 
 // Get an article by ID.
-func (s *UserStore) Get(ctx context.Context, a *userController.GetUserRequest) (*userModel.User, error) {
+func (s *AccountStore) Get(ctx context.Context, a *accountController.GetAccountRequest) (*accountModel.Account, error) {
 	var err error
 	row := s.db.QueryRow(ctx, `select *
 		from articles
 		where articles.id = $1
 		limit 1`, *a.ID)
-	var res userModel.User
+	var res accountModel.Account
 	err = row.Scan(&res.ID, &res.Name, &res.PasswordHash, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (s *UserStore) Get(ctx context.Context, a *userController.GetUserRequest) (
 }
 
 // Get an article by filter.
-// func (s *UserStore) List(a *userController.ListUserRequest) (*[]userModel.User, error) {
+// func (s *AccountStore) List(a *userController.ListUserRequest) (*[]userModel.User, error) {
 // 	var err error
 // 	ctx := context.Background()
 
@@ -84,7 +84,7 @@ func (s *UserStore) Get(ctx context.Context, a *userController.GetUserRequest) (
 // }
 
 // Create create a new article.
-// func (s *UserStore) Create(a *userModel.User) (*userModel.User, error) {
+// func (s *AccountStore) Create(a *userModel.User) (*userModel.User, error) {
 // 	var err error
 
 // 	u, err := uuid.NewV4()
@@ -120,7 +120,7 @@ func (s *UserStore) Get(ctx context.Context, a *userController.GetUserRequest) (
 // }
 
 // Update an article.
-// func (s *UserStore) Update(a *userController.UpdateUserRequest) (*userModel.User, error) {
+// func (s *AccountStore) Update(a *userController.UpdateUserRequest) (*userModel.User, error) {
 // 	var err error
 
 // 	var query string
@@ -167,7 +167,7 @@ func (s *UserStore) Get(ctx context.Context, a *userController.GetUserRequest) (
 // }
 
 // Delete an account.
-// func (s *UserStore) Delete(a *articleController.DeleteArticleRequest) (*userModel.User, error) {
+// func (s *AccountStore) Delete(a *articleController.DeleteArticleRequest) (*userModel.User, error) {
 // 	var err error
 
 // 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})

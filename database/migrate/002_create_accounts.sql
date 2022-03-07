@@ -1,5 +1,5 @@
 -- Write your migrate up statements here
-CREATE TABLE users (
+CREATE TABLE accounts (
 	id uuid NOT NULL,
 	name text NOT NULL,
 	password_hash text NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE users (
 );
 
 CREATE TRIGGER update_timestamp 
-	BEFORE UPDATE ON users
+	BEFORE UPDATE ON accounts
 	FOR EACH ROW 
 	EXECUTE PROCEDURE updatedAt_trig()
 
@@ -19,5 +19,5 @@ CREATE TRIGGER update_timestamp
 -- Write your migrate down statements here. If this migration is irreversible
 -- Then delete the separator line above.
 
-DROP TABLE users;
-DROP TRIGGER IF EXISTS update_timestamp ON users;
+DROP TABLE accounts;
+DROP TRIGGER IF EXISTS update_timestamp ON accounts;
