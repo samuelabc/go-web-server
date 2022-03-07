@@ -6,4 +6,6 @@
 5. jwt
 6. register, log in, log out, delete account
 7. oauth2.0
-8. query builder
+8. query builder (squirrel)
+9. scan helper (scany)
+10. pass in context to database function

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 	articleController "web-server/api/article"
-	models "web-server/model"
+	articleModel "web-server/model/article"
 
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
@@ -25,14 +25,14 @@ func NewArticleStore(db *pgxpool.Pool) *ArticleStore {
 }
 
 // Get an article by ID.
-func (s *ArticleStore) Get(a *articleController.GetArticleRequest) (*models.Article, error) {
+func (s *ArticleStore) Get(a *articleController.GetArticleRequest) (*articleModel.Article, error) {
 	var err error
 	ctx := context.Background()
 	row := s.db.QueryRow(ctx, `select *
 		from articles
 		where articles.id = $1
 		limit 1`, *a.ID)
-	var res models.Article
+	var res articleModel.Article
 	err = row.Scan(&res.ID, &res.Title, &res.Content, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (s *ArticleStore) Get(a *articleController.GetArticleRequest) (*models.Arti
 }
 
 // Get an article by filter.
-func (s *ArticleStore) List(a *articleController.ListArticleRequest) (*[]models.Article, error) {
+func (s *ArticleStore) List(a *articleController.ListArticleRequest) (*[]articleModel.Article, error) {
 	var err error
 	ctx := context.Background()
 
@@ -73,9 +73,9 @@ func (s *ArticleStore) List(a *articleController.ListArticleRequest) (*[]models.
 		return nil, err
 	}
 	defer rows.Close()
-	articles := []models.Article{}
+	articles := []articleModel.Article{}
 	for rows.Next() {
-		var a models.Article
+		var a articleModel.Article
 		err = rows.Scan(&a.ID, &a.Title, &a.Content, &a.CreatedAt, &a.UpdatedAt)
 		if err != nil {
 			return nil, err
@@ -89,14 +89,18 @@ func (s *ArticleStore) List(a *articleController.ListArticleRequest) (*[]models.
 }
 
 // Create create a new article.
-func (s *ArticleStore) Create(a *models.Article) (*models.Article, error) {
+func (s *ArticleStore) Create(a *articleController.CreateArticleRequest) (*articleModel.Article, error) {
 	var err error
 
+	newArticle := &articleModel.Article{
+		Title:   a.Title,
+		Content: a.Content,
+	}
 	u, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
-	a.ID = u.String()
+	newArticle.ID = &u
 
 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
@@ -110,12 +114,12 @@ func (s *ArticleStore) Create(a *models.Article) (*models.Article, error) {
 		}
 	}()
 
-	var res models.Article
+	var res articleModel.Article
 	row := tx.QueryRow(context.Background(), `
 		INSERT INTO articles(id, title, content)
 		VALUES ($1, $2, $3)
 		RETURNING *;
-	`, a.ID, a.Title, a.Content)
+	`, *newArticle.ID, *newArticle.Title, *newArticle.Content)
 	err = row.Scan(&res.ID, &res.Title, &res.Content, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -125,7 +129,7 @@ func (s *ArticleStore) Create(a *models.Article) (*models.Article, error) {
 }
 
 // Update an article.
-func (s *ArticleStore) Update(a *articleController.UpdateArticleRequest) (*models.Article, error) {
+func (s *ArticleStore) Update(a *articleController.UpdateArticleRequest) (*articleModel.Article, error) {
 	var err error
 
 	var query string
@@ -161,7 +165,7 @@ func (s *ArticleStore) Update(a *articleController.UpdateArticleRequest) (*model
 		}
 	}()
 
-	var res models.Article
+	var res articleModel.Article
 	row := tx.QueryRow(context.Background(), query)
 	err = row.Scan(&res.ID, &res.Title, &res.Content, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
@@ -172,7 +176,7 @@ func (s *ArticleStore) Update(a *articleController.UpdateArticleRequest) (*model
 }
 
 // Delete an account.
-func (s *ArticleStore) Delete(a *articleController.DeleteArticleRequest) (*models.Article, error) {
+func (s *ArticleStore) Delete(a *articleController.DeleteArticleRequest) (*articleModel.Article, error) {
 	var err error
 
 	tx, err := s.db.BeginTx(context.Background(), pgx.TxOptions{})
@@ -192,7 +196,7 @@ func (s *ArticleStore) Delete(a *articleController.DeleteArticleRequest) (*model
 		WHERE articles.id = $1
 		RETURNING *
 	`, *a.ID)
-	var res models.Article
+	var res articleModel.Article
 	err = row.Scan(&res.ID, &res.Title, &res.Content, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
 		return nil, err

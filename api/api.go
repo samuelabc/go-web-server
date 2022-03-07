@@ -12,6 +12,7 @@ import (
 
 	articleController "web-server/api/article"
 	helloRoute "web-server/api/hello"
+	userController "web-server/api/user"
 	database "web-server/database"
 	contextHelper "web-server/helper/context"
 	errorHelper "web-server/helper/error"
@@ -104,15 +105,19 @@ func executeRoute(routeInfo routeModel.Route) func(w http.ResponseWriter, r *htt
 
 type API struct {
 	Article *articleController.ArticleResource
+	User    *userController.UserResource
 }
 
 // NewAPI configures and returns application API.
 func NewAPI(db *pgxpool.Pool) (*API, error) {
 	articleStore := database.NewArticleStore(db)
 	article := articleController.NewArticleResource(articleStore)
+	userStore := database.NewUserStore(db)
+	user := userController.NewUserResource(userStore)
 
 	api := &API{
 		Article: article,
+		User:    user,
 	}
 	return api, nil
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	models "web-server/model"
+	articleModel "web-server/model/article"
 
 	errorHelper "web-server/helper/error"
 	errorModel "web-server/model/error"
@@ -14,11 +14,11 @@ import (
 
 // ProfileStore defines database operations for a profile.
 type ArticleStore interface {
-	Get(*GetArticleRequest) (*models.Article, error)
-	List(*ListArticleRequest) (*[]models.Article, error)
-	Create(*models.Article) (*models.Article, error)
-	Update(*UpdateArticleRequest) (*models.Article, error)
-	Delete(*DeleteArticleRequest) (*models.Article, error)
+	Get(*GetArticleRequest) (*articleModel.Article, error)
+	List(*ListArticleRequest) (*[]articleModel.Article, error)
+	Create(*CreateArticleRequest) (*articleModel.Article, error)
+	Update(*UpdateArticleRequest) (*articleModel.Article, error)
+	Delete(*DeleteArticleRequest) (*articleModel.Article, error)
 }
 
 // ArticleResource implements article management handler.
@@ -56,7 +56,7 @@ func NewArticleResource(store ArticleStore) *ArticleResource {
 // }
 
 type articleRequest struct {
-	*models.Article
+	*articleModel.Article
 }
 
 func (d *articleRequest) Bind(r *http.Request) error {
@@ -64,10 +64,10 @@ func (d *articleRequest) Bind(r *http.Request) error {
 }
 
 type articleResponse struct {
-	*models.Article
+	*articleModel.Article
 }
 
-func newArticleResponse(p *models.Article) *articleResponse {
+func newArticleResponse(p *articleModel.Article) *articleResponse {
 	return &articleResponse{
 		Article: p,
 	}
@@ -132,8 +132,8 @@ func (rs *ArticleResource) list(w http.ResponseWriter, r *http.Request) *errorMo
 func (rs *ArticleResource) create(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
 	var err error
 
-	data := &articleRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&data.Article); err != nil {
+	data := &CreateArticleRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		return errorHelper.ErrInvalidRequest(err)
 	}
 
@@ -143,7 +143,7 @@ func (rs *ArticleResource) create(w http.ResponseWriter, r *http.Request) *error
 		return errorHelper.ErrValidation(err)
 	}
 
-	res, err := rs.Store.Create(data.Article)
+	res, err := rs.Store.Create(data)
 	if err != nil {
 		return errorHelper.ErrCreateArticle(err)
 	}
