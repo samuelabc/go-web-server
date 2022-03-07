@@ -8,12 +8,17 @@ const (
 	GENERAL_CODE = (iota + 1) * 1000
 	HEALTH_CODE  = (iota + 1) * 1000
 	ARTICLE_CODE = (iota + 1) * 1000
+	ACCOUNT_CODE = (iota + 1) * 1000
 )
 const (
 	VALIDATION_FAILED = iota + GENERAL_CODE
 	DECODE_FAILED
 	ENCODE_FAILED
 	INVALID_REQUEST
+	UNAUTHORIZED
+	TOKEN_EXPIRED
+	ACCESS_TOKEN_INVALID
+	REFRESH_TOKEN_INVALID
 )
 
 func ErrValidation(err error) *errorModel.AppError {
@@ -41,6 +46,34 @@ func ErrInvalidRequest(err error) *errorModel.AppError {
 	return &errorModel.AppError{
 		Code:      INVALID_REQUEST,
 		Message:   "invalid request",
+		ErrorData: err.Error(),
+	}
+}
+func ErrUnauthorized(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      UNAUTHORIZED,
+		Message:   "unauthorized",
+		ErrorData: err.Error(),
+	}
+}
+func ErrTokenExpired(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      TOKEN_EXPIRED,
+		Message:   "token expired",
+		ErrorData: err.Error(),
+	}
+}
+func ErrAccessTokenInvalid(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      ACCESS_TOKEN_INVALID,
+		Message:   "invalid access token",
+		ErrorData: err.Error(),
+	}
+}
+func ErrRefreshTokenInvalid(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      REFRESH_TOKEN_INVALID,
+		Message:   "invalid refresh token",
 		ErrorData: err.Error(),
 	}
 }
@@ -97,6 +130,50 @@ func ErrDeleteArticle(err error) *errorModel.AppError {
 	return &errorModel.AppError{
 		Code:      DELETE_ARTICLE_FAILED,
 		Message:   "delete article failed",
+		ErrorData: err.Error(),
+	}
+}
+
+const (
+	FETCH_ACCOUNT_FAILED = iota + ACCOUNT_CODE
+	LIST_ACCOUNT_FAILED
+	CREATE_ACCOUNT_FAILED
+	UPDATE_ACCOUNT_FAILED
+	DELETE_ACCOUNT_FAILED
+)
+
+func ErrFetchAccount(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      FETCH_ACCOUNT_FAILED,
+		Message:   "fetch account failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrListAccount(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      LIST_ACCOUNT_FAILED,
+		Message:   "list account failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrCreateAccount(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      CREATE_ACCOUNT_FAILED,
+		Message:   "create account failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrUpdateAccount(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      UPDATE_ACCOUNT_FAILED,
+		Message:   "update account failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrDeleteAccount(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      DELETE_ACCOUNT_FAILED,
+		Message:   "delete account failed",
 		ErrorData: err.Error(),
 	}
 }

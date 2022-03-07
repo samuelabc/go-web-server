@@ -69,12 +69,12 @@ func RequestBodyValidationMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 		return nil
 	}
-	return appHandler(validationMiddleware)
+	return AppHandler(validationMiddleware)
 }
 
-type appHandler func(http.ResponseWriter, *http.Request) *errorModel.AppError
+type AppHandler func(http.ResponseWriter, *http.Request) *errorModel.AppError
 
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (fn AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if e := fn(w, r); e != nil { // e is *appError, not os.Error.
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -141,7 +141,7 @@ func Router(r *mux.Router) error {
 	// routeInfo := routeMatrix[routeModel.Path{MainPath: r.URL.Path, SubPath: ""}]
 	for k, v := range routeMatrix {
 		fullPath := fmt.Sprint(k.MainPath, k.SubPath)
-		r.Handle(fullPath, appHandler(executeRoute(v))).Methods(k.Method)
+		r.Handle(fullPath, AppHandler(executeRoute(v))).Methods(k.Method)
 		fmt.Println(k.Method, fullPath)
 	}
 
