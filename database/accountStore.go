@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	accountController "web-server/api/account"
 	accountModel "web-server/model/account"
 
@@ -51,11 +50,12 @@ func (s *AccountStore) Register(ctx context.Context, a *accountController.Regist
 	if err != nil {
 		return nil, err
 	}
-	newAccount := accountModel.Account{
-		ID:           &u,
-		Name:         a.Name,
-		PasswordHash: a.Password,
-		Email:        a.Email,
+
+	newAccount := map[string]interface{}{
+		"id":            &u,
+		"name":          a.Name,
+		"password_hash": a.Password,
+		"email":         a.Email,
 	}
 
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
@@ -72,14 +72,21 @@ func (s *AccountStore) Register(ctx context.Context, a *accountController.Regist
 
 	var res accountModel.Account
 
-	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	var values []interface{}
+	var columns []string
+	for k, _ := range newAccount {
+		if v, ok := newAccount[k]; ok {
+			columns = append(columns, k)
+			values = append(values, v)
+		}
+	}
 
-	query, param, err := psql.Insert("accounts").Columns("id", "name", "password_hash, email").Values(*newAccount.ID, *newAccount.Name, *newAccount.PasswordHash, *newAccount.Email).Suffix("Returning *").ToSql()
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	query, param, err := psql.Insert("accounts").Columns(columns...).Values(values...).Suffix("Returning *").ToSql()
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("query", query, param)
+	// fmt.Println("query", query, param)
 	err = s.db.QueryRow(ctx, query, param...).Scan(&res.ID, &res.Name, &res.PasswordHash, &res.Email, &res.CreatedAt, &res.UpdatedAt)
 
 	if err != nil {
