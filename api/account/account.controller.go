@@ -16,7 +16,7 @@ import (
 // ProfileStore defines database operations for a profile.
 type AccountStore interface {
 	Get(context.Context, *GetAccountRequest) (*accountModel.Account, error)
-	// Register(*RegisterUserRequest) (*userModel.User, error)
+	Register(context.Context, *RegisterAccountRequest) (*accountModel.Account, error)
 	// Login(*RegisterUserRequest) (*userModel.User, error)
 	// List(*ListUserRequest) (*[]userModel.User, error)
 	// Update(*UpdateUserRequest) (*userModel.User, error)
@@ -76,29 +76,29 @@ func (rs *AccountResource) get(w http.ResponseWriter, r *http.Request) *errorMod
 }
 
 func (rs *AccountResource) register(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
-	// var err error
+	var err error
 
-	// data := &RegisterUserRequest{}
-	// if err := json.NewDecoder(r.Body).Decode(&data.Article); err != nil {
-	// 	return errorHelper.ErrInvalidRequest(err)
-	// }
+	data := &RegisterAccountRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		return errorHelper.ErrInvalidRequest(err)
+	}
 
-	// validate := validator.New()
-	// err = validate.Struct(data)
-	// if err != nil {
-	// 	return errorHelper.ErrValidation(err)
-	// }
+	validate := validator.New()
+	err = validate.Struct(data)
+	if err != nil {
+		return errorHelper.ErrValidation(err)
+	}
 
-	// res, err := rs.Store.Create(data.Article)
-	// if err != nil {
-	// 	return errorHelper.ErrCreateArticle(err)
-	// }
+	res, err := rs.Store.Register(context.Background(), data)
+	if err != nil {
+		return errorHelper.ErrRegisterAccount(err)
+	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.WriteHeader(http.StatusOK)
-	// if err := json.NewEncoder(w).Encode(newArticleResponse(res)); err != nil {
-	// 	return errorHelper.ErrEncode(err)
-	// }
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(getAccountResponse(res)); err != nil {
+		return errorHelper.ErrEncode(err)
+	}
 	return nil
 }
 

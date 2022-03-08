@@ -137,6 +137,7 @@ func ErrDeleteArticle(err error) *errorModel.AppError {
 const (
 	FETCH_ACCOUNT_FAILED = iota + ACCOUNT_CODE
 	LIST_ACCOUNT_FAILED
+	REGISTER_ACCOUNT_FAILED
 	CREATE_ACCOUNT_FAILED
 	UPDATE_ACCOUNT_FAILED
 	DELETE_ACCOUNT_FAILED
@@ -153,6 +154,13 @@ func ErrListAccount(err error) *errorModel.AppError {
 	return &errorModel.AppError{
 		Code:      LIST_ACCOUNT_FAILED,
 		Message:   "list account failed",
+		ErrorData: err.Error(),
+	}
+}
+func ErrRegisterAccount(err error) *errorModel.AppError {
+	return &errorModel.AppError{
+		Code:      REGISTER_ACCOUNT_FAILED,
+		Message:   "register account failed",
 		ErrorData: err.Error(),
 	}
 }

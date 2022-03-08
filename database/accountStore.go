@@ -2,10 +2,13 @@ package database
 
 import (
 	"context"
+	"fmt"
 	accountController "web-server/api/account"
 	accountModel "web-server/model/account"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/gofrs/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -21,25 +24,69 @@ func NewAccountStore(db *pgxpool.Pool) *AccountStore {
 	}
 }
 
-// Get an article by ID.
+// Get an account by ID.
 func (s *AccountStore) Get(ctx context.Context, a *accountController.GetAccountRequest) (*accountModel.Account, error) {
 	var err error
 	var res accountModel.Account
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	query, _, _ := psql.Select("*").From("accounts").Where(sq.Eq{"id": *a.ID}).Limit(1).ToSql()
-	err = s.db.QueryRow(ctx, query).Scan(&res.ID, &res.Name, &res.PasswordHash, &res.CreatedAt, &res.UpdatedAt)
+	query, param, err := psql.Select("*").From("accounts").Where(sq.Eq{"id": *a.ID}).Limit(1).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	err = s.db.QueryRow(ctx, query, param...).Scan(&res.ID, &res.Name, &res.PasswordHash, &res.Email, &res.CreatedAt, &res.UpdatedAt)
 
-	// row := s.db.QueryRow(ctx, `select *
-	// 	from accounts
-	// 	where accounts.id = $1
-	// 	limit 1`, *a.ID)
-	// err = row.Scan(&res.ID, &res.Name, &res.PasswordHash, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 	return &res, err
+}
+
+// Register a new account.
+func (s *AccountStore) Register(ctx context.Context, a *accountController.RegisterAccountRequest) (*accountModel.Account, error) {
+	var err error
+
+	u, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+	newAccount := accountModel.Account{
+		ID:           &u,
+		Name:         a.Name,
+		PasswordHash: a.Password,
+		Email:        a.Email,
+	}
+
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	var res accountModel.Account
+
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	query, param, err := psql.Insert("accounts").Columns("id", "name", "password_hash, email").Values(*newAccount.ID, *newAccount.Name, *newAccount.PasswordHash, *newAccount.Email).Suffix("Returning *").ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("query", query, param)
+	err = s.db.QueryRow(ctx, query, param...).Scan(&res.ID, &res.Name, &res.PasswordHash, &res.Email, &res.CreatedAt, &res.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
 }
 
 // Get an article by filter.

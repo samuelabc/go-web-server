@@ -5,13 +5,14 @@ import (
 )
 
 type RegisterAccountRequest struct {
-	Name     *string `json:"title,omitempty" validate:"required"`
-	Password *string `json:"content,omitempty" validate:"required"`
+	Name     *string `json:"name,omitempty" validate:"required"`
+	Password *string `json:"password,omitempty" validate:"required"`
+	Email    *string `json:"email,omitempty" validate:""`
 }
 
 type LoginAccountRequest struct {
-	Name     *string `json:"title,omitempty" validate:"required"`
-	Password *string `json:"content,omitempty" validate:"required"`
+	Name     *string `json:"name,omitempty" validate:"required"`
+	Password *string `json:"password,omitempty" validate:"required"`
 }
 
 type GetAccountRequest struct {
@@ -19,13 +20,13 @@ type GetAccountRequest struct {
 }
 
 type ListAccountRequest struct {
-	Name *string `json:"title,omitempty" validate:"required"`
+	Name *string `json:"name,omitempty" validate:"required"`
 }
 
 type UpdateAccountRequest struct {
 	ID       *uuid.UUID `json:"id,omitempty" validate:"required"`
-	Name     *string    `json:"title,omitempty" validate:"required"`
-	Password *string    `json:"content,omitempty" validate:"required"`
+	Name     *string    `json:"name,omitempty" validate:"required"`
+	Password *string    `json:"password,omitempty" validate:"required"`
 }
 
 type DeleteAccountRequest struct {
