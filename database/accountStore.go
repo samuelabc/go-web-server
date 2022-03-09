@@ -6,6 +6,7 @@ import (
 	accountModel "web-server/model/account"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -97,52 +98,65 @@ func (s *AccountStore) Register(ctx context.Context, a *accountController.Regist
 }
 
 // Get an article by filter.
-// func (s *AccountStore) List(a *userController.ListUserRequest) (*[]userModel.User, error) {
-// 	var err error
-// 	ctx := context.Background()
+func (s *AccountStore) List(ctx context.Context, a *accountController.ListAccountRequest) ([]*accountModel.Account, error) {
+	var err error
 
-// 	var query string
-// 	var filters []string
-// 	query = "select * from articles"
+	// account := map[string]interface{}{
+	// 	"id":    a.ID,
+	// 	"name":  a.Name,
+	// 	"email": a.Email,
+	// }
 
-// 	//filter
-// 	if a.ID != nil || a.Title != nil || a.Content != nil {
-// 		query = fmt.Sprint(query, " where")
-// 	}
-// 	if a.ID != nil {
-// 		filters = append(filters, fmt.Sprint("articles.id = ", "'", *a.ID, "'"))
-// 	}
-// 	if a.Title != nil {
-// 		filters = append(filters, fmt.Sprint("articles.title = ", "'", *a.Title, "'"))
-// 	}
-// 	if a.Content != nil {
-// 		filters = append(filters, fmt.Sprint("articles.content = ", "'", *a.Content, "'"))
-// 	}
-// 	filterQuery := strings.Join(filters, " and ")
-// 	query = fmt.Sprint(query, " ", filterQuery)
+	// psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	// accounts := psql.Select("*").From("accounts")
+	// for k, _ := range account {
+	// 	if v, ok := account[k]; ok {
+	// 		if !reflect.ValueOf(v).IsNil() {
+	// 			T := reflect.TypeOf(v).Elem()
+	// 			fmt.Printf("type name", T)
+	// 			fmt.Println("value of k", v)
+	// 			fmt.Printf("value of k, %v %T\n", v, v)
 
-// 	//limit
-// 	query = fmt.Sprint(query, " limit ", 100)
+	// 			switch T.Name() {
+	// 			case "stringvalue":
+	// 				accounts = accounts.Where(fmt.Sprint(k, "=?"), v.(*string))
 
-// 	rows, err := s.db.Query(ctx, query)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-// 	articles := []models.Article{}
-// 	for rows.Next() {
-// 		var a models.Article
-// 		err = rows.Scan(&a.ID, &a.Title, &a.Content, &a.CreatedAt, &a.UpdatedAt)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		articles = append(articles, a)
-// 	}
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
-// 	return &articles, err
-// }
+	// 			case "UUIDvalue":
+	// 				accounts = accounts.Where(fmt.Sprint(k, "=?"), v.(*uuid.UUID))
+
+	// 			}
+	// 			// accounts = accounts.Where(fmt.Sprint(k, "=?"), v.(T))
+	// 		}
+	// 	}
+	// }
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+	accounts := psql.Select("*").From("accounts")
+	if a.ID != nil {
+		accounts = accounts.Where("id = ?", *a.ID)
+	}
+	if a.Name != nil {
+		accounts = accounts.Where("name = ?", *a.Name)
+	}
+	if a.Email != nil {
+		accounts = accounts.Where("email = ?", *a.Email)
+	}
+	query, param, err := accounts.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.Query(ctx, query, param...)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	res := []*accountModel.Account{}
+	pgxscan.ScanAll(&res, rows)
+	if err != nil {
+		return nil, err
+	}
+	return res, err
+}
 
 // Create create a new article.
 // func (s *AccountStore) Create(a *userModel.User) (*userModel.User, error) {

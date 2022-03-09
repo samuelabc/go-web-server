@@ -18,7 +18,7 @@ type AccountStore interface {
 	Get(context.Context, *GetAccountRequest) (*accountModel.Account, error)
 	Register(context.Context, *RegisterAccountRequest) (*accountModel.Account, error)
 	// Login(*RegisterUserRequest) (*userModel.User, error)
-	// List(*ListUserRequest) (*[]userModel.User, error)
+	List(context.Context, *ListAccountRequest) ([]*accountModel.Account, error)
 	// Update(*UpdateUserRequest) (*userModel.User, error)
 	// Delete(*DeleteUserRequest) (*userModel.User, error)
 }
@@ -130,28 +130,28 @@ func (rs *AccountResource) login(w http.ResponseWriter, r *http.Request) *errorM
 }
 
 func (rs *AccountResource) list(w http.ResponseWriter, r *http.Request) *errorModel.AppError {
-	// var err error
-	// data := &ListArticleRequest{}
-	// if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-	// 	return errorHelper.ErrInvalidRequest(err)
-	// }
+	var err error
+	data := &ListAccountRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		return errorHelper.ErrInvalidRequest(err)
+	}
 
-	// validate := validator.New()
-	// err = validate.Struct(data)
-	// if err != nil {
-	// 	return errorHelper.ErrValidation(err)
-	// }
+	validate := validator.New()
+	err = validate.Struct(data)
+	if err != nil {
+		return errorHelper.ErrValidation(err)
+	}
 
-	// articles, err := rs.Store.List(data)
-	// if err != nil {
-	// 	return errorHelper.ErrListArticle(err)
-	// }
+	accounts, err := rs.Store.List(context.Background(), data)
+	if err != nil {
+		return errorHelper.ErrListAccount(err)
+	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.WriteHeader(http.StatusOK)
-	// if err := json.NewEncoder(w).Encode(articles); err != nil {
-	// 	return errorHelper.ErrEncode(err)
-	// }
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(accounts); err != nil {
+		return errorHelper.ErrEncode(err)
+	}
 	return nil
 }
 

@@ -20,7 +20,9 @@ type GetAccountRequest struct {
 }
 
 type ListAccountRequest struct {
-	Name *string `json:"name,omitempty" validate:"required"`
+	ID    *uuid.UUID `json:"id" validate:""`
+	Name  *string    `json:"name,omitempty" validate:""`
+	Email *string    `json:"email,omitempty" validate:""`
 }
 
 type UpdateAccountRequest struct {
